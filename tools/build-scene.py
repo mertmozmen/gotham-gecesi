@@ -1,8 +1,21 @@
 # Gotham sahnesini üretir → hooks/scene.ts   (python3 tools/build-scene.py)
-import random, json, os
+import random, json, os, sys, re
 random.seed(7)
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, '..', 'hooks', 'scene.ts')
+
+# İsteğe bağlı: python3 tools/build-scene.py --logo yol/logo.svg
+# Logo gökyüzünün sol üstüne, sarı bir halenin önüne yerleşir.
+LOGO = ''
+if '--logo' in sys.argv:
+    src = open(sys.argv[sys.argv.index('--logo') + 1]).read()
+    vb = re.search(r'viewBox="([^"]+)"', src).group(1)
+    inner = re.sub(r'^.*?<svg[^>]*>', '', src, count=1, flags=re.S).rsplit('</svg>', 1)[0]
+    inner = re.sub(r'<script.*?</script>', '', inner, flags=re.S)
+    LOGO = (f'<g class="p-logo"><g class="lg-pos">'
+            f'<circle cx="230" cy="190" r="190" fill="url(#halo)"/>'
+            f'<svg class="crest" x="80" y="40" width="300" height="300" viewBox="{vb}">{inner}</svg>'
+            f'</g></g>')
 
 def bat_half():
     # Özgün yarasa silüeti, sağ yarı: kulak, parmak kemikli kanat, dalgalı alt kenar.
@@ -15,7 +28,7 @@ def bat(attrs=''):
 
 
 SC = 'transform="scale(%s)"'
-EMB = bat('class="emb" transform="translate(1180,82) scale(1.35,1.2)" fill="#050607" filter="url(#sb)"')
+EMB = bat('class="emb" transform="translate(1180,82) scale(1.35,1.2)" fill="#03060e" filter="url(#sb)"')
 
 # Şehir
 bld=[];x=-90
@@ -35,7 +48,7 @@ for i in range(160):
 rain=''.join(f'<line x1="{(rx:=random.randint(-100,1700))}" y1="{(ry:=random.randint(-900,0))}" x2="{rx-12}" y2="{ry+38}"/>' for _ in range(140))
 
 # Otomatik kamera kayması: her katman kendi genliğinde yavaşça salınır (derinlik hissi).
-LAYERS={'p-sky':10,'p-cl':22,'p-far':34,'p-near':60,'p-fly':80}
+LAYERS={'p-sky':10,'p-logo':16,'p-cl':22,'p-far':34,'p-near':60,'p-fly':80}
 rules=''.join(
     f'.{L}{{animation:{L} 38s ease-in-out infinite}}'
     f'@keyframes {L}{{0%,100%{{transform:translate({k}px,{k*.3:.0f}px)}}'
@@ -64,7 +77,7 @@ flock=''.join(flock);flyrules=''.join(flyrules)
 svg=f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice">
 <style>
 {rules}
-.w{{fill:#e6b422;animation-name:wf;animation-iteration-count:infinite;animation-timing-function:steps(1)}}{''.join(f'.w{i}{{{{animation-duration:{3+i*.9:.1f}s;animation-delay:-{i*.7:.1f}s}}}}' for i in range(8))}
+.w{{fill:#ffd400;animation-name:wf;animation-iteration-count:infinite;animation-timing-function:steps(1)}}{''.join(f'.w{i}{{{{animation-duration:{3+i*.9:.1f}s;animation-delay:-{i*.7:.1f}s}}}}' for i in range(8))}
 @keyframes wf{{0%{{opacity:.75}}40%{{opacity:.15}}70%{{opacity:.6}}}}
 .beam{{transform-origin:1180px 900px;animation:sw 22s ease-in-out infinite alternate}}
 @keyframes sw{{from{{transform:rotate(-14deg)}}to{{transform:rotate(10deg)}}}}
@@ -76,32 +89,35 @@ svg=f'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveA
 @keyframes lg{{0%,93%,100%{{opacity:0}}94%{{opacity:.35}}95%{{opacity:0}}96%{{opacity:.2}}}}
 .emb{{animation:pu 6s ease-in-out infinite}}
 @keyframes pu{{0%,100%{{opacity:.85}}50%{{opacity:.65}}}}
-.fl{{fill:#000;stroke:#f2c84b;stroke-opacity:.7;stroke-width:3;paint-order:stroke}}
+.fl{{fill:#000;stroke:#ffd400;stroke-opacity:.7;stroke-width:3;paint-order:stroke}}
 {flyrules}
 .flap{{transform-box:fill-box;transform-origin:center;animation:fp .28s ease-in-out infinite alternate}}.f1{{animation-duration:.24s}}.f2{{animation-duration:.33s}}
 @keyframes fp{{from{{transform:scaleY(1)}}to{{transform:scaleY(-.45)}}}}
-@media (max-aspect-ratio:1/1){{.bw{{transform:translateX(-300px)}}}}
+@media (max-aspect-ratio:1/1){{.bw{{transform:translateX(-300px)}}.lg-pos{{transform:translate(600px,240px) scale(.55)}}}}
+.crest{{opacity:.82;animation:cr 7s ease-in-out infinite}}@keyframes cr{{0%,100%{{opacity:.82}}50%{{opacity:.62}}}}
 </style>
 <defs>
-<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#05070a"/><stop offset=".7" stop-color="#11151b"/><stop offset="1" stop-color="#1a1d22"/></linearGradient>
-<linearGradient id="bm" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#f2c84b" stop-opacity=".35"/><stop offset="1" stop-color="#f2c84b" stop-opacity="0"/></linearGradient>
-<radialGradient id="spot"><stop offset="0" stop-color="#f7d97a" stop-opacity=".7"/><stop offset=".55" stop-color="#e6b422" stop-opacity=".35"/><stop offset="1" stop-color="#e6b422" stop-opacity="0"/></radialGradient>
+<linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#03060e"/><stop offset=".7" stop-color="#0a1428"/><stop offset="1" stop-color="#101c36"/></linearGradient>
+<linearGradient id="bm" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#ffd400" stop-opacity=".35"/><stop offset="1" stop-color="#ffd400" stop-opacity="0"/></linearGradient>
+<radialGradient id="spot"><stop offset="0" stop-color="#ffe45c" stop-opacity=".7"/><stop offset=".55" stop-color="#ffd400" stop-opacity=".35"/><stop offset="1" stop-color="#ffd400" stop-opacity="0"/></radialGradient>
+<radialGradient id="halo"><stop offset="0" stop-color="#ffd400" stop-opacity=".28"/><stop offset=".6" stop-color="#ffd400" stop-opacity=".08"/><stop offset="1" stop-color="#ffd400" stop-opacity="0"/></radialGradient>
 <filter id="bl"><feGaussianBlur stdDeviation="14"/></filter>
 <filter id="sb"><feGaussianBlur stdDeviation="1.6"/></filter>
 </defs>
 <rect width="1600" height="900" fill="url(#sky)"/>
-<rect class="lt" width="1600" height="900" fill="#9fb3c8"/>
+<rect class="lt" width="1600" height="900" fill="#a9bde0"/>
 {''.join(zones)}
 <g class="p-sky"><g class="bw"><g class="beam"><polygon points="1170,900 1190,900 1300,30 1060,30" fill="url(#bm)" filter="url(#bl)"/>
 <ellipse cx="1180" cy="82" rx="200" ry="110" fill="url(#spot)"/>
 {EMB}</g></g></g>
-<g class="p-cl"><g class="cl" fill="#1c2128" opacity=".7" filter="url(#bl)">
+{LOGO}
+<g class="p-cl"><g class="cl" fill="#16223d" opacity=".7" filter="url(#bl)">
 <ellipse cx="200" cy="120" rx="260" ry="50"/><ellipse cx="700" cy="80" rx="320" ry="60"/><ellipse cx="1300" cy="140" rx="280" ry="45"/>
 <ellipse cx="1000" cy="120" rx="260" ry="50"/><ellipse cx="1500" cy="80" rx="320" ry="60"/><ellipse cx="2100" cy="140" rx="280" ry="45"/></g></g>
 <g class="p-fly">{flock}</g>
-<g class="p-far" fill="#0d1014">{''.join(far)}</g>
-<g class="p-near"><g fill="#07090b">{''.join(bld)}</g><g>{''.join(win)}</g></g>
-<g stroke="#8a97a6" stroke-opacity=".22" stroke-width="1.2"><g class="rn">{rain}</g><g class="rn" transform="translate(0,900)">{rain}</g></g>
+<g class="p-far" fill="#0a1224">{''.join(far)}</g>
+<g class="p-near"><g fill="#050a16">{''.join(bld)}</g><g>{''.join(win)}</g></g>
+<g stroke="#8fa3c8" stroke-opacity=".22" stroke-width="1.2"><g class="rn">{rain}</g><g class="rn" transform="translate(0,900)">{rain}</g></g>
 </svg>'''
 assert len(svg) < 131072, len(svg)
 open(OUT,'w').write('export const SCENE = '+json.dumps(svg)+'\n')

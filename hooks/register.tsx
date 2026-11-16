@@ -3,21 +3,21 @@ import type { Register, ThemeSetArgs } from 'claude-code'
 import { makeColors } from './make-colors.js'
 import { SCENE } from './scene'
 
-// Gotham gecesi: kurşuni siyah yüzeyler, sodyum lambası altını vurgu.
+// Gotham gecesi, sarı-lacivert: gece laciverdi yüzeyler, sarı vurgu.
 const { theme, problems } = makeColors({
-  label: 'Gotham Gecesi',
+  label: 'Gotham Gecesi (sarı-lacivert)',
   only: 'dark',
-  roles: { accent: '#e6b422', danger: '#c8423a', success: '#6f9a5a', warning: '#d9922b', pro: '#8a7bb8' },
+  roles: { accent: '#ffd400', danger: '#d0453c', success: '#4fa36a', warning: '#e8922a', pro: '#8f84d8' },
   dark: {
     gray: {
       anchors: {
-        'surface-0': '#0b0d10',
-        'surface-1': '#12151a',
-        'surface-2': '#181c22',
-        'surface-3': '#1e232a',
-        'text-primary': '#e8e6df',
-        'text-secondary': '#b9bcc0',
-        'text-muted': '#8d939a',
+        'surface-0': '#070c18',
+        'surface-1': '#0c1324',
+        'surface-2': '#111a2e',
+        'surface-3': '#16203a',
+        'text-primary': '#eceff6',
+        'text-secondary': '#bcc4d6',
+        'text-muted': '#8e98b0',
       },
     },
   },
@@ -25,7 +25,7 @@ const { theme, problems } = makeColors({
 
 const LOOK: ThemeSetArgs = {
   colors: theme,
-  backdrop: { scene: 'gotham', glass: { blur: 6, tint: '#0b0d10', opacity: 0.55 } },
+  backdrop: { scene: 'gotham', glass: { blur: 6, tint: '#070c18', opacity: 0.55 } },
 }
 
 export const register: Register = on => {
