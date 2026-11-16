@@ -1,0 +1,5 @@
+{
+  "name": "gotham-gecesi",
+  "owner": { "name": "mertmozmen" },
+  "plugins": [{ "name": "gotham-gecesi", "source": "./" }]
+}
